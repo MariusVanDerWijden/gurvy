@@ -85,7 +85,7 @@ func (p *G1Jac) MultiExp(points []G1Affine, scalars []fr.Element, opts ...*Multi
 
 		// empirical
 
-		if opt.C > 16 && nbPoints <= 1<<24 {
+		if opt.C > 16 && nbPoints < 1<<23 {
 			opt.C = 16
 		}
 

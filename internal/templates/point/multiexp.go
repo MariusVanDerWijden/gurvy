@@ -47,7 +47,7 @@ func (p *{{ toUpper .PointName }}Jac) MultiExp(points []{{ toUpper .PointName }}
 	
 		// implemented msmC methods (the c we use must be in this slice)
 		implementedCs := []uint64{
-			{{- range $c :=  .CRange}} {{$c}},{{- end}}
+			{{- range $c :=  .CRange}} {{- if and (eq $.PointName "g1") (gt $c 21)}}{{- else}} {{$c}},{{- end}}{{- end}}
 		}
 	
 		// approximate cost (in group operations)
@@ -66,7 +66,7 @@ func (p *{{ toUpper .PointName }}Jac) MultiExp(points []{{ toUpper .PointName }}
 
 		// empirical
 		{{if eq .PointName "g1"}}
-		if opt.C > 16 && nbPoints <= 1 << 24 {
+		if opt.C > 16 && nbPoints < 1 << 23 {
 			opt.C = 16
 		} 
 		{{else}}

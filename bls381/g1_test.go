@@ -956,40 +956,6 @@ func TestG1MultiExp(t *testing.T) {
 
 	}
 
-	if !testing.Short() {
-
-		properties.Property("Multi exponentation (c=23) should be consistant with sum of square", prop.ForAll(
-			func(mixer fr.Element) bool {
-
-				var result, expected G1Jac
-
-				// mixer ensures that all the words of a fpElement are set
-				var sampleScalars [nbSamples]fr.Element
-
-				for i := 1; i <= nbSamples; i++ {
-					sampleScalars[i-1].SetUint64(uint64(i)).
-						MulAssign(&mixer).
-						FromMont()
-				}
-
-				// semaphore to limit number of cpus
-				opt := NewMultiExpOptions(runtime.NumCPU())
-				opt.lock.Lock()
-				scalars := partitionScalars(sampleScalars[:], 23)
-				result.msmC23(samplePoints[:], scalars, opt)
-
-				// compute expected result with double and add
-				var finalScalar, mixerBigInt big.Int
-				finalScalar.Mul(&scalar, mixer.ToBigIntRegular(&mixerBigInt))
-				expected.ScalarMultiplication(&g1GenAff, &finalScalar)
-
-				return result.Equal(&expected)
-			},
-			genScalar,
-		))
-
-	}
-
 	properties.TestingRun(t, gopter.ConsoleReporter(false))
 }
 
