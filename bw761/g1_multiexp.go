@@ -82,6 +82,13 @@ func (p *G1Jac) MultiExp(points []G1Affine, scalars []fr.Element, opts ...*Multi
 				opt.C = c
 			}
 		}
+
+		// empirical
+
+		if opt.C > 16 && nbPoints <= 1<<24 {
+			opt.C = 16
+		}
+
 	}
 
 	// take all the cpus to ourselves

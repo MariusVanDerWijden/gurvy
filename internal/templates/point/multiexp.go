@@ -63,6 +63,17 @@ func (p *{{ toUpper .PointName }}Jac) MultiExp(points []{{ toUpper .PointName }}
 				opt.C = c 
 			}
 		}
+
+		// empirical
+		{{if eq .PointName "g1"}}
+		if opt.C > 16 && nbPoints <= 1 << 24 {
+			opt.C = 16
+		} 
+		{{else}}
+		if opt.C > 16 && nbPoints < 1 << 23 {
+			opt.C = 16
+		}
+		{{end}}
 	}
 	
 
