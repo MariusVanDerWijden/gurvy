@@ -784,18 +784,20 @@ func Benchmark{{ toUpper .PointName}}MultiExpLarge{{ toUpper .PointName}}(b *tes
 	var testPoint {{ toUpper .PointName}}Jac
 
 
-	for c := 16; c <= 22; c++ {
 		for i := 23; i <= pow; i++ {
-			using := 1 << i
+			for c := 16; c <= 22; c++ {
+				for cpus:=2; cpus <=8; cpus*=2 {
+					using := 1 << i
 	
-			opt := NewMultiExpOptions(runtime.NumCPU())
-			opt.C = uint64(c)
-			b.Run(fmt.Sprintf("%d points, c = %d",using, c), func(b *testing.B) {
-				b.ResetTimer()
-				for j := 0; j < b.N; j++ {
-					testPoint.MultiExp(samplePoints[:using], sampleScalars[:using], opt)
+					opt := NewMultiExpOptions(cpus)
+					opt.C = uint64(c)
+					b.Run(fmt.Sprintf("%d points, c = %d, cpus = %d",using, c, cpus), func(b *testing.B) {
+						b.ResetTimer()
+						for j := 0; j < b.N; j++ {
+							testPoint.MultiExp(samplePoints[:using], sampleScalars[:using], opt)
+						}
+					})
 				}
-			})
 		}
 	}
 	
