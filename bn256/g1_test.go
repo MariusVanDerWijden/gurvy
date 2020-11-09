@@ -961,6 +961,51 @@ func TestG1BatchScalarMultiplication(t *testing.T) {
 	properties.TestingRun(t, gopter.ConsoleReporter(false))
 }
 
+func TestMarshal(t *testing.T) {
+	parameters := gopter.DefaultTestParameters()
+	parameters.MinSuccessfulTests = 10
+
+	properties := gopter.NewProperties(parameters)
+
+	genFuzz1 := GenFp()
+	properties.Property("[BN256] Marshal -> Unmarshal return the same point", prop.ForAll(
+		func(a fp.Element) bool {
+			fop := fuzzJacobianG1(&g1Gen, a)
+			fop2 := fuzzJacobianG1(&g1Gen, a)
+			b := fop.Marshal()
+			// Can only marshal valid points
+			if !fop.IsOnCurve() {
+				return true
+			}
+			if _, err := fop2.Unmarshal(b); err != nil {
+				t.Error(err)
+				return false
+			}
+			return fop.Equal(&fop2)
+		},
+		genFuzz1,
+	))
+	properties.Property("[BN256] Unmarshal -> Marshal return the same marshalled value", prop.ForAll(
+		func(a fp.Element) bool {
+			fop := fuzzJacobianG1(&g1Gen, a)
+			fop2 := fuzzJacobianG1(&g1Gen, a)
+			b := fop.Marshal()
+			// Can only marshal valid points
+			if !fop.IsOnCurve() {
+				return true
+			}
+			if _, err := fop2.Unmarshal(b); err != nil {
+				t.Error(err)
+				return false
+			}
+			b2 := fop2.Marshal()
+			return bytes.Equal(b, b2)
+		},
+		genFuzz1,
+	))
+	properties.TestingRun(t, gopter.ConsoleReporter(false))
+}
+
 // ------------------------------------------------------------
 // benches
 

@@ -17,6 +17,7 @@
 package bn256
 
 import (
+	"errors"
 	"math/big"
 
 	"github.com/consensys/gurvy/bn256/fp"
@@ -622,4 +623,43 @@ func BatchScalarMultiplicationG1(base *G1Affine, scalars []fr.Element) []G1Affin
 	BatchJacobianToAffineG1(toReturn, toReturnAff)
 	return toReturnAff
 
+}
+
+// Marshal marshals this point into a byte slice.
+func (p *G1Jac) Marshal() []byte {
+	// Each value is a 256-bit number.
+	const numBytes = 256 / 8
+	ret := make([]byte, 2*numBytes)
+	// if p is infinity
+	if p.Z.IsZero() {
+		return ret
+	}
+	x := p.X.FromMont().Bytes()
+	y := p.Y.FromMont().Bytes()
+	copy(ret[numBytes-len(x):], x)
+	copy(ret[2*numBytes-len(y):], y)
+	return ret
+}
+
+// Unmarshal sets p to the group element marshalled in the byte slice.
+func (p *G1Jac) Unmarshal(m []byte) ([]byte, error) {
+	// Each value is a 256-bit number.
+	const numBytes = 256 / 8
+	if len(m) != 2*numBytes {
+		return nil, errors.New("g1Affine unmarshal: invalid length")
+	}
+	p.X.SetBytes(m[0:numBytes])
+	p.Y.SetBytes(m[numBytes : 2*numBytes])
+	if p.X.IsZero() && p.Y.IsZero() {
+		// Point at infinity
+		p.Y.SetOne()
+		p.Z.SetZero()
+	} else {
+		p.Z.SetOne()
+
+		if !p.IsOnCurve() {
+			return nil, errors.New("g1Affine unmarshal: not on curve")
+		}
+	}
+	return m[2*numBytes:], nil
 }
